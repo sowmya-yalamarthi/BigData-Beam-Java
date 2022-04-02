@@ -27,4 +27,3 @@
   
 ## Tejaswi Avula &nbsp;
 - [Link to my wiki page](https://github.com/sowmya-yalamarthi/BigData-Beam-Java/wiki/Tejaswi-Avula)
-- [Link to my README.md](https://github.com/tejaavula076/BigData-Beam-Java)
