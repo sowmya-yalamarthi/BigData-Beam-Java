@@ -35,5 +35,5 @@
 - [Link to my wiki page](https://github.com/sowmya-yalamarthi/BigData-Beam-Java/wiki/Pruthvi-Raj-Padthe)
 
 
-## Tejaswi Avula &nbsp;
+## Priyanka Maruthi &nbsp;
 - [Link to my wiki page](https://github.com/sowmya-yalamarthi/BigData-Beam-Java/wiki/Priyanka-Maruthi)
