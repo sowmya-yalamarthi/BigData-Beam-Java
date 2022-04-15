@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nwmissouri.bigdata.java.grp03_sowmya;
+package edu.nwmissouri.bigdata.java.grp03_sowmya;
 
 // beam-playground:
 //   name: MinimalWordCount
