@@ -39,4 +39,4 @@
 - [Link to my wiki page](https://github.com/sowmya-yalamarthi/BigData-Beam-Java/wiki/Priyanka-Maruthi)
 
 ## Bala Shankar Malladi
--[Link to my wiki page](https://github.com/sowmya-yalamarthi/BigData-Beam-Java/wiki/Bala-shankar-Malladi)
+- [Link to my wiki page](https://github.com/sowmya-yalamarthi/BigData-Beam-Java/wiki/Bala-shankar-Malladi)
