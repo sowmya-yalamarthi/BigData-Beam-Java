@@ -24,7 +24,7 @@ mvn archetype:generate `
 ## Execute PR Quick Start
 
 ```PowerShell
-mvn compile exec:java -D exec.mainClass=edu.nwmissouri.group03.MinimalPageRankSumithra
+mvn compile exec:java -D exec.mainClass=edu.nwmissouri.group03sumithra.MinimalPageRankSumithra
 ```
 
 

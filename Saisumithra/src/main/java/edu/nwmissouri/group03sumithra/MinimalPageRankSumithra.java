@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edu.nwmissouri.group03;
+package edu.nwmissouri.group03sumithra;
 
 // beam-playground:
 //   name: MinimalWordCount
