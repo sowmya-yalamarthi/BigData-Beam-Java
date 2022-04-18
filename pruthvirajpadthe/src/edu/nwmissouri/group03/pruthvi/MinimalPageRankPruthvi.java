@@ -31,6 +31,7 @@ package edu.nwmissouri.group03.pruthvi;
 import java.util.Arrays;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.TextIO;
+import org.apache.beam.sdk.transforms.GroupByKey;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.Count;
@@ -109,15 +110,20 @@ public class MinimalPageRankPruthvi {
 
     String folder="web04";
     //String file="go.md";
-    PCollection<KV<String,String>> pCollList1 = PruthviMapper1(p,"go.md",folder);
+  PCollection<KV<String,String>> pCollList1 = PruthviMapper1(p,"go.md",folder);
    PCollection<KV<String,String>> pCollList2 = PruthviMapper1(p,"python.md",folder);
    PCollection<KV<String,String>> pCollList3 = PruthviMapper1(p,"java.md",folder);
    PCollection<KV<String,String>> pCollList4 = PruthviMapper1(p,"README.md",folder);
+   PCollection<KV<String,String>> pCollList5 = PruthviMapper1(p,"Axum.md",folder);
+
+
 
    
     PCollectionList<KV<String, String>> pCollectionList = PCollectionList.of(pCollList1).and(pCollList2).and(pCollList3).and(pCollList4);
-    PCollection<KV<String, String>> l = pCollectionList.apply(Flatten.<KV<String,String>>pCollections());
-    PCollection<String> pColLinkString = l.apply(MapElements.into(TypeDescriptors.strings()).via((mergeOut)->mergeOut.toString()));
+    PCollection<KV<String, String>> m = pCollectionList.apply(Flatten.<KV<String,String>>pCollections());
+    PCollection<KV<String, Iterable<String>>> g =m.apply(GroupByKey.create());
+
+    PCollection<String> pColLinkString = g.apply(MapElements.into(TypeDescriptors.strings()).via((mergeOut)->mergeOut.toString()));
     pColLinkString.apply(TextIO.write().to("PruthviPR"));  
     p.run().waitUntilFinish();
        
