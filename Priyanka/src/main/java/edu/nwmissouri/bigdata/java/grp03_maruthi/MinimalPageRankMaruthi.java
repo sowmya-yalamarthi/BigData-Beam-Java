@@ -172,7 +172,7 @@ public class MinimalPageRankMaruthi {
         //
         // By default, it will write to a set of files with names like wordcounts-00001-of-00005
         
-    //     PDone pcol = pcolLinks.apply(TextIO.write().to("sowmyaRank"));
+    //     PDone pcol = pcolLinks.apply(TextIO.write().to("MaruthiRank"));
 
     // p.run().waitUntilFinish();
  
