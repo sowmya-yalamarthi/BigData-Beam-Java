@@ -17,6 +17,8 @@
  */
 package edu.nwmissouri.group03.balu;
 
+import java.util.ArrayList;
+
 // beam-playground:
 //   name: MinimalWordCount
 //   description: An example that counts words in Shakespeare's works.
@@ -28,17 +30,23 @@ package edu.nwmissouri.group03.balu;
 //     - IO
 //     - Core Transforms
 
+
+import java.util.Collection;
+
+// import org.apache.beam.model.pipeline.v1.RunnerApi.PCollection;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.TextIO;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
+import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.Filter;
 import org.apache.beam.sdk.transforms.Flatten;
 import org.apache.beam.sdk.transforms.MapElements;
+
 import org.apache.beam.sdk.values.KV;
+import org.apache.beam.sdk.values.TypeDescriptors;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionList;
-import org.apache.beam.sdk.values.TypeDescriptors;
 
 
 /**
@@ -69,29 +77,47 @@ import org.apache.beam.sdk.values.TypeDescriptors;
  */
  public class MinimalPageRankBalu {
 
+   // DEFINE DOFNS
+  // ==================================================================
+  // You can make your pipeline assembly code less verbose by defining
+  // your DoFns statically out-of-line.
+  // Each DoFn<InputT, OutputT> takes previous output
+  // as input of type InputT
+  // and transforms it to OutputT.
+  // We pass this DoFn to a ParDo in our pipeline.
+
+  /**
+   * DoFn Job1Finalizer takes KV(String, String List of outlinks) and transforms
+   * the value into our custom RankedPage Value holding the page's rank and list
+   * of voters.
+   * 
+   * The output of the Job1 Finalizer creates the initial input into our
+   * iterative Job 2.
+   */
+  static class Job1Finalizer extends DoFn<KV<String, Iterable<String>>, KV<String, RankedPage>> {
+    @ProcessElement
+    public void processElement(@Element KV<String, Iterable<String>> element,
+        OutputReceiver<KV<String, RankedPage>> receiver) {
+      Integer contributorVotes = 0;
+      if (element.getValue() instanceof Collection) {
+        contributorVotes = ((Collection<String>) element.getValue()).size();
+      }
+      ArrayList<VotingPage> voters = new ArrayList<VotingPage>();
+      for (String voterName : element.getValue()) {
+        if (!voterName.isEmpty()) {
+          voters.add(new VotingPage(voterName, contributorVotes));
+        }
+      }
+      receiver.output(KV.of(element.getKey(), new RankedPage()));
+    }
+  }
+
   public static void main(String[] args) {
 
-    // Create a PipelineOptions object. This object lets us set various execution
-    // options for our pipeline, such as the runner you wish to use. This example
-    // will run with the DirectRunner by default, based on the class path configured
-    // in its dependencies.
+    
     PipelineOptions options = PipelineOptionsFactory.create();
 
-    // In order to run your pipeline, you need to make following runner specific changes:
-    //
-    // CHANGE 1/3: Select a Beam runner, such as BlockingDataflowRunner
-    // or FlinkRunner.
-    // CHANGE 2/3: Specify runner-required options.
-    // For BlockingDataflowRunner, set project and temp location as follows:
-    //   DataflowPipelineOptions dataflowOptions = options.as(DataflowPipelineOptions.class);
-    //   dataflowOptions.setRunner(BlockingDataflowRunner.class);
-    //   dataflowOptions.setProject("SET_YOUR_PROJECT_ID_HERE");
-    //   dataflowOptions.setTempLocation("gs://SET_YOUR_BUCKET_NAME_HERE/AND_TEMP_DIRECTORY");
-    // For FlinkRunner, set the runner as follows. See {@code FlinkPipelineOptions}
-    // for more details.
-    //   options.as(FlinkPipelineOptions.class)
-    //      .setRunner(FlinkRunner.class);
-
+   
     // Create the Pipeline object with the options we defined above
     Pipeline p = Pipeline.create(options);
 
@@ -117,6 +143,43 @@ import org.apache.beam.sdk.values.TypeDescriptors;
         TypeDescriptors.strings())
           .via((myMergeLstout) -> myMergeLstout.toString()));
 
+        PCollectionLinksString.apply(TextIO.write().to("BalaShankarOutput"));
+
+    p.run().waitUntilFinish();
+  }
+    private static PCollection<KV<String, String>> BalashankarMapper(Pipeline p, String dataFile, String dataFolder) {
+    String dataPath = dataFolder + "/" + dataFile;
+    PCollection<String> pcolInputLines =  p.apply(TextIO.read().from(dataPath));
+    PCollection<String> pcolLines  =pcolInputLines.apply(Filter.by((String line) -> !line.isEmpty()));
+    PCollection<String> pcColInputEmptyLines=pcolLines.apply(Filter.by((String line) -> !line.equals(" ")));
+    PCollection<String> pcolInputLinkLines=pcColInputEmptyLines.apply(Filter.by((String line) -> line.startsWith("[")));
+   
+    PCollection<String> pcolInputLinks=pcolInputLinkLines.apply(
+            MapElements.into(TypeDescriptors.strings())
+                .via((String linkline) -> linkline.substring(linkline.indexOf("(")+1,linkline.indexOf(")")) ));
+
+                PCollection<KV<String, String>> pcollectionkvLinks=pcolInputLinks.apply(
+                  MapElements.into(  
+                    TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.strings()))
+                      .via (linkline ->  KV.of(dataFile , linkline) ));
+      return pcollectionkvLinks;
+  }
+}
+
+ // In order to run your pipeline, you need to make following runner specific changes:
+    //
+    // CHANGE 1/3: Select a Beam runner, such as BlockingDataflowRunner
+    // or FlinkRunner.
+    // CHANGE 2/3: Specify runner-required options.
+    // For BlockingDataflowRunner, set project and temp location as follows:
+    //   DataflowPipelineOptions dataflowOptions = options.as(DataflowPipelineOptions.class);
+    //   dataflowOptions.setRunner(BlockingDataflowRunner.class);
+    //   dataflowOptions.setProject("SET_YOUR_PROJECT_ID_HERE");
+    //   dataflowOptions.setTempLocation("gs://SET_YOUR_BUCKET_NAME_HERE/AND_TEMP_DIRECTORY");
+    // For FlinkRunner, set the runner as follows. See {@code FlinkPipelineOptions}
+    // for more details.
+    //   options.as(FlinkPipelineOptions.class)
+    //      .setRunner(FlinkRunner.class);
 
         // Concept #2: Apply a FlatMapElements transform the PCollection of text lines.
         // This transform splits the lines in PCollection<String>, where each element is an
@@ -142,25 +205,3 @@ import org.apache.beam.sdk.values.TypeDescriptors;
         // formatted strings) to a series of text files.
         //
         // By default, it will write to a set of files with names like wordcounts-00001-of-00005
-        PCollectionLinksString.apply(TextIO.write().to("BalaShankarOutput"));
-
-    p.run().waitUntilFinish();
-  }
-    private static PCollection<KV<String, String>> BalashankarMapper(Pipeline p, String dataFile, String dataFolder) {
-    String dataPath = dataFolder + "/" + dataFile;
-    PCollection<String> pcolInputLines =  p.apply(TextIO.read().from(dataPath));
-    PCollection<String> pcolLines  =pcolInputLines.apply(Filter.by((String line) -> !line.isEmpty()));
-    PCollection<String> pcColInputEmptyLines=pcolLines.apply(Filter.by((String line) -> !line.equals(" ")));
-    PCollection<String> pcolInputLinkLines=pcColInputEmptyLines.apply(Filter.by((String line) -> line.startsWith("[")));
-   
-    PCollection<String> pcolInputLinks=pcolInputLinkLines.apply(
-            MapElements.into(TypeDescriptors.strings())
-                .via((String linkline) -> linkline.substring(linkline.indexOf("(")+1,linkline.indexOf(")")) ));
-
-                PCollection<KV<String, String>> pcollectionkvLinks=pcolInputLinks.apply(
-                  MapElements.into(  
-                    TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.strings()))
-                      .via (linkline ->  KV.of(dataFile , linkline) ));
-      return pcollectionkvLinks;
-  }
-}
