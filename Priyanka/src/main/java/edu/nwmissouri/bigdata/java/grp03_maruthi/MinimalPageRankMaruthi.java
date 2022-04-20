@@ -17,6 +17,8 @@
  */
 package edu.nwmissouri.bigdata.java.grp03_maruthi;
 
+import java.util.ArrayList;
+
 // beam-playground:
 //   name: MinimalWordCount
 //   description: An example that counts words in Shakespeare's works.
@@ -29,6 +31,7 @@ package edu.nwmissouri.bigdata.java.grp03_maruthi;
 //     - Core Transforms
 
 import java.util.Arrays;
+import java.util.Collection;
 
 // import org.apache.beam.model.pipeline.v1.RunnerApi.PCollection;
 import org.apache.beam.sdk.Pipeline;
@@ -36,10 +39,13 @@ import org.apache.beam.sdk.io.TextIO;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.Count;
+import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.Filter;
 import org.apache.beam.sdk.transforms.FlatMapElements;
 import org.apache.beam.sdk.transforms.Flatten;
+import org.apache.beam.sdk.transforms.GroupByKey;
 import org.apache.beam.sdk.transforms.MapElements;
+import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.TypeDescriptors;
 import org.apache.beam.sdk.values.PCollection;
@@ -49,7 +55,42 @@ import org.apache.beam.sdk.values.TypeDescriptor;
 
 
 public class MinimalPageRankMaruthi {
+// DEFINE DOFNS
+  // ==================================================================
+  // You can make your pipeline assembly code less verbose by defining
+  // your DoFns statically out-of-line.
+  // Each DoFn<InputT, OutputT> takes previous output
+  // as input of type InputT
+  // and transforms it to OutputT.
+  // We pass this DoFn to a ParDo in our pipeline.
 
+  /**
+   * DoFn Job1Finalizer takes KV(String, String List of outlinks) and transforms
+   * the value into our custom RankedPage Value holding the page's rank and list
+   * of voters.
+   * 
+   * The output of the Job1 Finalizer creates the initial input into our
+   * iterative Job 2.
+   */
+  static class Job1Finalizer extends DoFn<KV<String, Iterable<String>>, KV<String, RankedPage>> {
+    @ProcessElement
+    public void processElement(@Element KV<String, Iterable<String>> element,
+        OutputReceiver<KV<String, RankedPage>> receiver) {
+      Integer contributorVotes = 0;
+      if (element.getValue() instanceof Collection) {
+        contributorVotes = ((Collection<String>) element.getValue()).size();
+      }
+      ArrayList<VotingPage> voters = new ArrayList<VotingPage>();
+      for (String voterName : element.getValue()) {
+        if (!voterName.isEmpty()) {
+          voters.add(new VotingPage(voterName, contributorVotes));
+        }
+      }
+      receiver.output(KV.of(element.getKey(), new RankedPage(element.getKey(), voters)));
+    }
+  }
+
+  
   public static void main(String[] args) {
     PipelineOptions options = PipelineOptionsFactory.create();
 
@@ -65,6 +106,13 @@ public class MinimalPageRankMaruthi {
    
     PCollectionList<KV<String, String>> pCollectionList = PCollectionList.of(pCollKVPairs1).and(pCollKVPairs2).and(pCollKVPairs3).and(pCollKVPairs4);
     PCollection<KV<String, String>> mergedList = pCollectionList.apply(Flatten.<KV<String,String>>pCollections());
+    
+    // Group by Key to get a single record for each page
+    PCollection<KV<String, Iterable<String>>> kvStringReducedPairs = mergedList
+        .apply(GroupByKey.<String, String>create());
+
+        PCollection<KV<String, RankedPage>> job2in = kvStringReducedPairs.apply(ParDo.of(new Job1Finalizer()));
+ 
     
     PCollection<String> pLinksString = mergedList.apply(MapElements.into(TypeDescriptors.strings()).via((mergeOut)->mergeOut.toString()));
     pLinksString.apply(TextIO.write().to("MaruthiPageRank"));  
