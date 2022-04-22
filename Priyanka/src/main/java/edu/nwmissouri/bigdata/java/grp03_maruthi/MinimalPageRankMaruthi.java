@@ -91,6 +91,7 @@ public class MinimalPageRankMaruthi {
   }
 
   
+  
   public static void main(String[] args) {
     PipelineOptions options = PipelineOptionsFactory.create();
 
@@ -111,6 +112,7 @@ public class MinimalPageRankMaruthi {
     PCollection<KV<String, Iterable<String>>> kvStringReducedPairs = mergedList
         .apply(GroupByKey.<String, String>create());
 
+    // Convert to a custom Value object (RankedPage) in preparation for Job 2
         PCollection<KV<String, RankedPage>> job2in = kvStringReducedPairs.apply(ParDo.of(new Job1Finalizer()));
  
     
@@ -172,7 +174,7 @@ public class MinimalPageRankMaruthi {
         //
         // By default, it will write to a set of files with names like wordcounts-00001-of-00005
         
-    //     PDone pcol = pcolLinks.apply(TextIO.write().to("MaruthiRank"));
+    //     PDone pcol = pcolLinks.apply(TextIO.write().to("sowmyaRank"));
 
     // p.run().waitUntilFinish();
  
