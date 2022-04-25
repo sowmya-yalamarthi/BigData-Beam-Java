@@ -35,7 +35,12 @@ mvn compile exec:java -D exec.mainClass=edu.nwmissouri.bigdata.java.grp03_sowmya
 ## Usefull Links:
 
 [Group repo link](https://github.com/sowmya-yalamarthi/BigData-Beam-Java)
+
 [Readme link](https://github.com/sowmya-yalamarthi/BigData-Beam-Java/blob/main/Tejaswi/README.md)
+
 [Working folder link](https://github.com/sowmya-yalamarthi/BigData-Beam-Java/tree/main/Tejaswi)
+
 [Wiki link](https://github.com/sowmya-yalamarthi/BigData-Beam-Java/wiki/Tejaswi-Avula)
+
 [commits link](https://github.com/sowmya-yalamarthi/BigData-Beam-Java/commits/main)
+
