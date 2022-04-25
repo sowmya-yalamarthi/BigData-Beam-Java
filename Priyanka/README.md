@@ -37,3 +37,12 @@ mvn compile exec:java -D exec.mainClass=edu.nwmissouri.group02.Maruthi.MinimalPa
 
 mvn compile exec:java -D exec.mainClass=edu.nwmissouri.bigdata.java.grp03_maruthi.MinimalPageRankMaruthi
 ```
+
+## Links:
+
+* Group repo link : https://github.com/sowmya-yalamarthi/BigData-Beam-Java
+* Readme link : https://github.com/sowmya-yalamarthi/BigData-Beam-Java/blob/main/Priyanka/README.md
+* Working folder link : https://github.com/sowmya-yalamarthi/BigData-Beam-Java/tree/main/Priyanka
+* Wiki link :  https://github.com/sowmya-yalamarthi/BigData-Beam-Java/wiki/Priyanka-Maruthi 
+* commits link : https://github.com/sowmya-yalamarthi/BigData-Beam-Java/commits/main
+* 
