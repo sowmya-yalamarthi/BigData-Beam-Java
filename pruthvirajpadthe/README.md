@@ -1,8 +1,11 @@
 # Java-Word-Count-Beam
+
 Project has been taken from this link:
+
 (https://beam.apache.org/get-started/quickstart-java/)
 
 ## Get the sample project
+
 
 ```
 mvn archetype:generate
@@ -16,17 +19,20 @@ mvn archetype:generate
 -D interactiveMode-false
 ```
 
+
 ## Execute using DirectRunner
 ```
 mvn compileexec: java-Dexecmainclass=org. apache.beam. examples.WordCountexec.args="--inputFile=sample.txt-output=counts'direct-runner
 ```
+
 
 ## Execute PR Quick Start
 ```
   mvn compile exec:java -D exec.mainClass=edu.nwmissouri.group03.pruthvi.MinimalPageRankPruthvi 
  
  ```
- # Links :
+
+# Links :
  Group repo link :- (https://github.com/sowmya-yalamarthi/BigData-Beam-Java)
  
  Readme Link :- (https://github.com/sowmya-yalamarthi/BigData-Beam-Java/blob/main/pruthvirajpadthe/README.md)
