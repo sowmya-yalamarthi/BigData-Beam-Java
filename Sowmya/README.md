@@ -18,7 +18,7 @@ mvn archetype:generate `
  -D interactiveMode=false`
 ```
 
-## run using direct runner by following command:
+## run wordcount using direct runner by following command:
 
 ```
 mvn compile exec:java -Dexec.mainClass=org.apache.beam.examples.WordCount \
