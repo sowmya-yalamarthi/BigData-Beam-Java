@@ -50,23 +50,29 @@ import org.apache.beam.sdk.values.TypeDescriptor;
 
 public class MinimalPageRanktejaswi {
 
-static class Job1Finalizer extends DoFn<KV<String, Iterable<String>>, KV<String, RankedPage>> {
+  static class Job1Finalizer extends DoFn<KV<String, Iterable<String>>, KV<String, RankedPage>> {
     @ProcessElement
     public void processElement(@Element KV<String, Iterable<String>> element,
         OutputReceiver<KV<String, RankedPage>> receiver) {
-      Integer numberofVotes = 0;
+      Integer contributorVotes = 0;
       if (element.getValue() instanceof Collection) {
-        numberofVotes = ((Collection<String>) element.getValue()).size();
+        contributorVotes = ((Collection<String>) element.getValue()).size();
       }
       ArrayList<VotingPage> voters = new ArrayList<VotingPage>();
       for (String voterName : element.getValue()) {
         if (!voterName.isEmpty()) {
-          voters.add(new VotingPage(voterName, numberofVotes));
+          voters.add(new VotingPage(voterName, contributorVotes));
         }
       }
       receiver.output(KV.of(element.getKey(), new RankedPage(element.getKey(), voters)));
     }
   }
+  //  // Group by Key to get a single record for each page
+  //   PCollection<KV<String, Iterable<String>>> kvStringReducedPairs = mergedKV
+  //       .apply(GroupByKey.<String, String>create());
+
+  //   // Convert to a custom Value object (RankedPage) in preparation for Job 2
+  //   PCollection<KV<String, RankedPage>> job2in = kvStringReducedPairs.apply(ParDo.of(new Job1Finalizer()));
 
   public static void main(String[] args) {
     PipelineOptions options = PipelineOptionsFactory.create();
