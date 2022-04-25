@@ -39,7 +39,7 @@ mvn compileexec: java-Dexecmainclass=org. apache.beam. examples.WordCountexec.ar
  
  Working Floder Link :- (https://github.com/sowmya-yalamarthi/BigData-Beam-Java/tree/main/pruthvirajpadthe)
  
- Wiki Link :- (https://github.com/sowmya-yalamarthi/BigData-Beam-Java/wiki)
+ Wiki Link :- (https://github.com/sowmya-yalamarthi/BigData-Beam-Java/wiki/Pruthvi-Raj-Padthe)
  
  Commits Link :- (https://github.com/sowmya-yalamarthi/BigData-Beam-Java/commits/main)
  
