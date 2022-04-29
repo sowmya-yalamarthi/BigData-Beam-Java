@@ -90,6 +90,52 @@ public class MinimalPageRankMaruthi {
     }
   }
 
+
+
+   static class Job2Mapper extends DoFn<KV<String, RankedPage>, KV<String, RankedPage>> {
+    @ProcessElement
+    public void processElement(@Element KV<String, RankedPage> element,
+      OutputReceiver<KV<String, RankedPage>> receiver) {
+      int votes = 0;
+      ArrayList<VotingPage> voters = element.getValue().getVoterList();
+      if(voters instanceof Collection){
+        votes = ((Collection<VotingPage>) voters).size();
+      }
+      for(VotingPage vp: voters){
+        String pageName = vp.getVoterName();
+        double pageRank = vp.getPageRank();
+        String contributingPageName = element.getKey();
+        double contributingPageRank = element.getValue().getRank();
+        VotingPage contributor = new VotingPage(contributingPageName,votes,contributingPageRank);
+        ArrayList<VotingPage> arr = new ArrayList<>();
+        arr.add(contributor);
+        receiver.output(KV.of(vp.getVoterName(), new RankedPage(pageName, pageRank, arr)));        
+      }
+    }
+  }
+  
+   static class Job2Updater extends DoFn<KV<String, Iterable<RankedPage>>, KV<String, RankedPage>> {
+    @ProcessElement
+    public void processElement(@Element KV<String, Iterable<RankedPage>> element,
+      OutputReceiver<KV<String, RankedPage>> receiver) {
+        Double dampingFactor = 0.85;
+        Double updatedRank = (1 - dampingFactor);
+        ArrayList<VotingPage> newVoters = new ArrayList<>();
+        for(RankedPage rankPage:element.getValue()){
+          if (rankPage != null) {
+            for(VotingPage votingPage:rankPage.getVoterList()){
+              newVoters.add(votingPage);
+              updatedRank += (dampingFactor) * votingPage.getPageRank() / (double)votingPage.getContributorVotes();
+            }
+          }
+        }
+        receiver.output(KV.of(element.getKey(),new RankedPage(element.getKey(), updatedRank, newVoters)));
+
+    }
+
+  }
+
+  
   
   public static void main(String[] args) {
     PipelineOptions options = PipelineOptionsFactory.create();
@@ -111,9 +157,30 @@ public class MinimalPageRankMaruthi {
     PCollection<KV<String, Iterable<String>>> kvStringReducedPairs = mergedList
         .apply(GroupByKey.<String, String>create());
 
+    // Convert to a custom Value object (RankedPage) in preparation for Job 2
         PCollection<KV<String, RankedPage>> job2in = kvStringReducedPairs.apply(ParDo.of(new Job1Finalizer()));
  
+    PCollection<KV<String, RankedPage>> job2out = null; 
+    int iterations = 50;
+    for (int i = 1; i <= iterations; i++) {
+      // use job2in to calculate job2 out
+      PCollection<KV<String,RankedPage>> job2Mapper = job2in.apply(ParDo.of(new Job2Mapper()));
+  
+      PCollection<KV<String,Iterable<RankedPage>>> job2MapperGrpByKey = job2Mapper.apply(GroupByKey.create());
+  
+      job2out = job2MapperGrpByKey.apply(ParDo.of(new Job2Updater()));
+      // update job2in so it equals the new job2out
+      job2in = job2out;
+    }
+
     
+    // Change the KV pairs to String using toString of kv
+    PCollection<String> pColString = job2out.apply(
+        MapElements.into(
+            TypeDescriptors.strings()).via(
+                kvtoString -> kvtoString.toString()));
+    // Write the output to the file
+
     PCollection<String> pLinksString = mergedList.apply(MapElements.into(TypeDescriptors.strings()).via((mergeOut)->mergeOut.toString()));
     pLinksString.apply(TextIO.write().to("MaruthiPageRank"));  
     p.run().waitUntilFinish();
@@ -172,7 +239,7 @@ public class MinimalPageRankMaruthi {
         //
         // By default, it will write to a set of files with names like wordcounts-00001-of-00005
         
-    //     PDone pcol = pcolLinks.apply(TextIO.write().to("MaruthiRank"));
+    //     PDone pcol = pcolLinks.apply(TextIO.write().to("sowmyaRank"));
 
     // p.run().waitUntilFinish();
  
