@@ -29,23 +29,27 @@ package edu.nwmissouri.bigdata.java.grp03_sowmya;
 //     - Core Transforms
 
 import java.util.Arrays;
-
-// import org.apache.beam.model.pipeline.v1.RunnerApi.PCollection;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.TextIO;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.Count;
+import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.Filter;
 import org.apache.beam.sdk.transforms.FlatMapElements;
 import org.apache.beam.sdk.transforms.Flatten;
+import org.apache.beam.sdk.transforms.GroupByKey;
 import org.apache.beam.sdk.transforms.MapElements;
+import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.values.KV;
-import org.apache.beam.sdk.values.TypeDescriptors;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionList;
-import org.apache.beam.sdk.values.PDone;
+import org.apache.beam.sdk.values.PCollectionTuple;
 import org.apache.beam.sdk.values.TypeDescriptor;
+import org.apache.beam.sdk.values.TypeDescriptors;
 
 public class MinimalPageRankSowmya {
 
@@ -84,6 +88,59 @@ public class MinimalPageRankSowmya {
     }
   }
 
+
+  static class Job2Mapper extends DoFn<KV<String, RankedPage>, KV<String, RankedPage>> {
+    @ProcessElement
+    public void processElement(@Element KV<String, RankedPage> element,
+        OutputReceiver<KV<String, RankedPage>> receiver) {
+      Integer votes = 0;
+      ArrayList<VotingPage> voters = element.getValue().getVoters();
+      if (voters instanceof Collection) {
+        votes = ((Collection<VotingPage>)voters).size();
+      }
+      for (VotingPage vp : voters) {
+        String pageName=vp.getName();
+        Double pageRank=vp.getRank();
+        String contributingPageName= element.getKey();
+        Double contributingPageRank=element.getValue().getRank();
+        VotingPage contributer=new VotingPage(contributingPageName, contributingPageRank, votes);
+        ArrayList<VotingPage> arr =new ArrayList<VotingPage>();
+        arr.add(contributer);
+      receiver.output(KV.of(vp.getName(), new RankedPage(pageName,pageRank,arr)));
+        
+      }
+    }
+  }
+  static class Job2Updater extends DoFn<KV<String, Iterable<RankedPage>>, KV<String, RankedPage>> {
+    @ProcessElement
+    public void processElement(@Element KV<String, Iterable<RankedPage>> element,
+        OutputReceiver<KV<String, RankedPage>> receiver) {
+      Double dampingFactor = 0.85;
+      //Double updatedRank = (1 - dampingFactor) to start
+      Double updatedRank = (1 - dampingFactor);
+      //Create a  new array list for newVoters
+      ArrayList<VotingPage> newVoters = new ArrayList<>();
+      //For each pg in rankedPages, if pg isn't null, for each vp in pg.getVoters()
+      for(RankedPage pg:element.getValue()){
+        if (pg != null) {
+          for(VotingPage vp:pg.getVoters()){
+            newVoters.add(vp);
+            updatedRank += (dampingFactor) * vp.getRank() / (double)vp.getVotes();
+          }
+        }
+      }
+      receiver.output(KV.of(element.getKey(), new RankedPage(element.getKey(), updatedRank, newVoters)));
+    }
+  }
+
+ static class Job3 extends DoFn<KV<String, RankedPage>, KV<Double, String>> {
+    @ProcessElement
+    public void processElement(@Element KV<String, RankedPage> element,
+        OutputReceiver<KV<Double, String>> receiver) {
+      receiver.output(KV.of(element.getValue().getRank(), element.getKey()));
+    }
+  }
+
   public static void main(String[] args) {
     PipelineOptions options = PipelineOptionsFactory.create();
 
@@ -99,8 +156,30 @@ public class MinimalPageRankSowmya {
         .and(pCollKVPairs3).and(pCollKVPairs4);
     PCollection<KV<String, String>> mergedList = pCollectionList.apply(Flatten.<KV<String, String>>pCollections());
 
-    PCollection<String> pLinksString = mergedList
-        .apply(MapElements.into(TypeDescriptors.strings()).via((mergeOut) -> mergeOut.toString()));
+   // PCollection<String> pLinksString = mergedList
+       // .apply(MapElements.into(TypeDescriptors.strings()).via((mergeOut) -> mergeOut.toString()));
+
+        PCollection<KV<String, Iterable<String>>> grouped =mergedList.apply(GroupByKey.create());
+        // Convert to a custom Value object (RankedPage) in preparation for Job 2
+    PCollection<KV<String, RankedPage>> job2in = grouped.apply(ParDo.of(new Job1Finalizer()));
+    
+
+PCollection<KV<String, RankedPage>> job2out = null; 
+    int iterations = 50;
+    for (int i = 1; i <= iterations; i++) {
+      job2out= runJob2Iteration(job2in);
+      job2in =job2out;
+    }
+
+PCollection<KV<Double, String>> jobThree = job2out.apply(ParDo.of(new Job3()));
+
+    PCollection<KV<Double, String>> maxFinalRank = jobThree.apply(Combine.globally(Max.of(new RankedPage())));
+
+
+    PCollection<String> pLinksString = maxFinalRank.apply(
+      MapElements
+      .into(TypeDescriptors.strings())
+      .via((mergeOut)->mergeOut.toString()));
     pLinksString.apply(TextIO.write().to("SowmyaPageRank"));
     p.run().waitUntilFinish();
   }
@@ -117,6 +196,22 @@ public class MinimalPageRankSowmya {
             .via((String outLink) -> KV.of(filename, outLink)));
     return pColKVPairs;
   }
+
+  private static PCollection<KV<String, RankedPage>> runJob2Iteration(
+  PCollection<KV<String, RankedPage>> kvReducedPairs) {
+
+PCollection<KV<String, RankedPage>> updatedOutput = null;
+return updatedOutput;
+}
+
+public static  void deleteFiles(){
+  final File file = new File("./");
+  for (File f : file.listFiles()){
+   if(f.getName().startsWith("SowmyaPageRank")){
+  f.delete();
+  }
+   }
+ }
 
 }
 // p.run().waitUntilFinish();

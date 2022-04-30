@@ -30,7 +30,7 @@
   
 ## Tejaswi Avula &nbsp;
 - [Link to my wiki page](https://github.com/sowmya-yalamarthi/BigData-Beam-Java/wiki/Tejaswi-Avula)
-- [Link to my README.md](https://github.com/sowmya-yalamarthi/BigData-Beam-Java/blob/main/Tejaswi/README.md)
+
 ## Pruthvi Raj Padthe
 - [Link to my wiki page](https://github.com/sowmya-yalamarthi/BigData-Beam-Java/wiki/Pruthvi-Raj-Padthe)
 
@@ -40,3 +40,7 @@
 
 ## Bala Shankar Malladi
 - [Link to my wiki page](https://github.com/sowmya-yalamarthi/BigData-Beam-Java/wiki/Bala-shankar-Malladi)
+
+## Saisumithra Jagarlamudi
+- [Link to my wiki Page](https://github.com/sowmya-yalamarthi/BigData-Beam-Java/wiki/Saisumithra-Jagarlamudi)
+- [Link to my README.md](https://github.com/sowmya-yalamarthi/BigData-Beam-Java/blob/main/Saisumithra/README.md)

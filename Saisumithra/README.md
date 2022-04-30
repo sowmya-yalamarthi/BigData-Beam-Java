@@ -1,4 +1,4 @@
-#word-count-beam-Java
+# word-count-beam-Java
 
 Java Quickstart for Apache Beam
 
@@ -7,27 +7,20 @@ Java Quickstart for Apache Beam
 - Java
 - Maven
 
-## Get the Sample Project
-
-```PowerShell
-mvn archetype:generate `
- -D archetypeGroupId=org.apache.beam `
- -D archetypeArtifactId=beam-sdks-java-maven-archetypes-examples `
- -D archetypeVersion=2.36.0 `
- -D groupId=org.example `
- -D artifactId=word-count-beam `
- -D version="0.1" `
- -D package=org.apache.beam.examples `
- -D interactiveMode=false`
-```
-
 ## Execute PR Quick Start
 
 ```PowerShell
 mvn compile exec:java -D exec.mainClass=edu.nwmissouri.group03sumithra.MinimalPageRankSumithra
 ```
 
+## Links :
 
+* GroupRepoLink : https://github.com/sowmya-yalamarthi/BigData-Beam-Java
+* READMELink : https://github.com/sowmya-yalamarthi/BigData-Beam-Java/blob/main/Saisumithra/README.md
+* WikiLink : https://github.com/sowmya-yalamarthi/BigData-Beam-Java/wiki/Saisumithra-Jagarlamudi
+* CodeFolderLink : https://github.com/sowmya-yalamarthi/BigData-Beam-Java/tree/main/Saisumithra
+* CommitLink : https://github.com/sowmya-yalamarthi/BigData-Beam-Java/commits/main/Saisumithra
+* Job3 Link : https://github.com/sowmya-yalamarthi/BigData-Beam-Java/blob/main/Saisumithra/SumithraOutput-00000-of-00001
 
 
 
