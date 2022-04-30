@@ -26,7 +26,12 @@ public  class VotingPage extends DoFn<KV<String,Iterable<String>>,KV<String,Rank
     }
     @Override
     public String toString() {
-        return "contributorVotes=" + contributorVotes + ", voterName=" + voterName;
+        return "VotingPage [contributorVotes=" + contributorVotes + ", voterName=" + voterName + "]";
     }
-    
+ public double getRank() {
+        return this.rank;
+    }
+    public void setRank(double pageRank){
+        this.rank = pageRank;
+    }
 }
