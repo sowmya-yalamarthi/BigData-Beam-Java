@@ -1,35 +1,46 @@
 package edu.nwmissouri.group03sumithra;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
 
-import org.apache.beam.sdk.transforms.DoFn;
-import org.apache.beam.sdk.values.KV;
+// keep track of a page , its rank and how many votes
+public class VotingPage implements Serializable{
+    String name = "unknown.md";
+    Double rank = 1.0;
+    Integer votes = 0;
 
-public  class VotingPage extends DoFn<KV<String,Iterable<String>>,KV<String,RankedPage>> implements Serializable{
-    String voterName;
-    int contributorVotes;
-    public VotingPage(String voterName,Integer contributorVotes2){
-        this.voterName = voterName;
-        this.contributorVotes = contributorVotes2;        
+    /**
+     * 
+     * @param nameIn - name of contributing page
+     * @param votesIn - Count of votes made by contributing page
+     */
+    public VotingPage(String nameIn, Integer votesIn) {
+        this.name = nameIn;
+        this.votes = votesIn;
     }
-    public String getVoterName() {
-        return voterName;
+    /**
+     * 
+     * @param nameIn - name of contributing page
+     * @param rankIn - rank of contributor page
+     * @param votesIn - Count of votes made by contributing page
+     */
+    public VotingPage(String nameIn,Double rankIn, Integer votesIn) {
+        this.name = nameIn;
+        this.rank = rankIn;
+        this.votes = votesIn;
     }
-    public void setVoterName(String voterName) {
-        this.voterName = voterName;
+   
+    public String getName(){
+        return this.name;
     }
-    public int getContributorVotes() {
-        return contributorVotes;
+    public Double getRank(){
+       return  this.rank;
     }
-    public void setContributorVotes(int contributorVotes) {
-        this.contributorVotes = contributorVotes;
+    public  Integer getVotes(){
+        return this.votes;
     }
-    @Override
-    public String toString() {
-        return "contributorVotes=" + contributorVotes + ", voterName=" + voterName;
+@Override
+    public String toString(){
+        return String.format("%s,%.5f,%d", this.name,this.rank,this.votes);
     }
 
-
-}
+}  
