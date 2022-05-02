@@ -115,13 +115,15 @@ public class MinimalPageRankSowmya {
     @ProcessElement
     public void processElement(@Element KV<String, Iterable<RankedPage>> element,
         OutputReceiver<KV<String, RankedPage>> receiver) {
+          String thisPage = element.getKey();
+        Iterable<RankedPage> rankedPages = element.getValue();
       Double dampingFactor = 0.85;
       //Double updatedRank = (1 - dampingFactor) to start
       Double updatedRank = (1 - dampingFactor);
       //Create a  new array list for newVoters
-      ArrayList<VotingPage> newVoters = new ArrayList<>();
+      ArrayList<VotingPage> newVoters = new ArrayList<VotingPage>();
       //For each pg in rankedPages, if pg isn't null, for each vp in pg.getVoters()
-      for(RankedPage pg:element.getValue()){
+      for(RankedPage pg:rankedPages){
         if (pg != null) {
           for(VotingPage vp:pg.getVoters()){
             newVoters.add(vp);
@@ -129,7 +131,7 @@ public class MinimalPageRankSowmya {
           }
         }
       }
-      receiver.output(KV.of(element.getKey(), new RankedPage(element.getKey(), updatedRank, newVoters)));
+      receiver.output(KV.of(thisPage, new RankedPage(thisPage, updatedRank, newVoters)));
     }
   }
 
@@ -140,6 +142,38 @@ public class MinimalPageRankSowmya {
       receiver.output(KV.of(element.getValue().getRank(), element.getKey()));
     }
   }
+
+
+  public static  void deleteFiles(){
+  final File file = new File("./");
+  for (File f : file.listFiles()){
+   if(f.getName().startsWith("SowmyaPageRank")){
+  f.delete();
+  }
+   }
+ }
+
+  public static PCollection<KV<String, String>> SowmyaMapper01(Pipeline p, String filename, String dataFolder) {
+
+    String newdataPath = dataFolder + "/" + filename;
+    PCollection<String> pcolInput = p.apply(TextIO.read().from(newdataPath));
+    PCollection<String> pcollinkLines = pcolInput.apply(Filter.by((String line) -> line.startsWith("[")));
+    PCollection<String> pcolLinks = pcollinkLines.apply(MapElements.into((TypeDescriptors.strings()))
+        .via((String linkLine) -> linkLine.substring(linkLine.indexOf("(") + 1, linkLine.length() - 1)));
+    PCollection<KV<String, String>> pColKVPairs = pcolLinks
+        .apply(MapElements.into(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.strings()))
+            .via((String outLink) -> KV.of(filename, outLink)));
+    return pColKVPairs;
+  }
+
+   private static PCollection<KV<String, RankedPage>> runJob2Iteration(
+  PCollection<KV<String, RankedPage>> kvReducedPairs) {
+
+PCollection<KV<String, RankedPage>> updatedOutput = null;
+PCollection<KV<String, Iterable<RankedPage>>> reducedKVs = mappedKVs
+        .apply(GroupByKey.<String, RankedPage>create());
+return updatedOutput;
+}
 
   public static void main(String[] args) {
     PipelineOptions options = PipelineOptionsFactory.create();
@@ -182,38 +216,7 @@ PCollection<KV<Double, String>> jobThree = job2out.apply(ParDo.of(new Job3()));
       .via((mergeOut)->mergeOut.toString()));
     pLinksString.apply(TextIO.write().to("SowmyaPageRank"));
     p.run().waitUntilFinish();
-  }
-
-  public static PCollection<KV<String, String>> SowmyaMapper01(Pipeline p, String filename, String dataFolder) {
-
-    String newdataPath = dataFolder + "/" + filename;
-    PCollection<String> pcolInput = p.apply(TextIO.read().from(newdataPath));
-    PCollection<String> pcollinkLines = pcolInput.apply(Filter.by((String line) -> line.startsWith("[")));
-    PCollection<String> pcolLinks = pcollinkLines.apply(MapElements.into((TypeDescriptors.strings()))
-        .via((String linkLine) -> linkLine.substring(linkLine.indexOf("(") + 1, linkLine.length() - 1)));
-    PCollection<KV<String, String>> pColKVPairs = pcolLinks
-        .apply(MapElements.into(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.strings()))
-            .via((String outLink) -> KV.of(filename, outLink)));
-    return pColKVPairs;
-  }
-
-  private static PCollection<KV<String, RankedPage>> runJob2Iteration(
-  PCollection<KV<String, RankedPage>> kvReducedPairs) {
-
-PCollection<KV<String, RankedPage>> updatedOutput = null;
-return updatedOutput;
-}
-
-public static  void deleteFiles(){
-  final File file = new File("./");
-  for (File f : file.listFiles()){
-   if(f.getName().startsWith("SowmyaPageRank")){
-  f.delete();
-  }
-   }
- }
-
-}
+}}
 // p.run().waitUntilFinish();
 
 // PCollection<String> pcolInput =
